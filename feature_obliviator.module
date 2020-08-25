@@ -35,15 +35,15 @@ function feature_obliviator_get_analyses($organism)
  */
 function feature_obliviator_get_count($organism, $analysis)
 {
-    return (int) chado_query('SELECT COUNT(*) FROM {feature} f 
+    return (int)chado_query('SELECT COUNT(*) FROM {feature} f 
                         WHERE f.organism_id=:organism_id
                         AND EXISTS (
                           SELECT feature_id FROM {analysisfeature} af 
                             WHERE af.analysis_id=:analysis_id 
                             AND f.feature_id=af.feature_id
                         )', [
-        'organism_id' => $organism->organism_id,
-        'analysis_id' => $analysis->analysis_id,
+        ':organism_id' => $organism->organism_id,
+        ':analysis_id' => $analysis->analysis_id,
     ])->fetchField();
 }
 
@@ -55,14 +55,17 @@ function feature_obliviator_get_count($organism, $analysis)
  */
 function feature_obliviator_obliviate($organism, $analysis)
 {
-    return chado_query('DELETE FROM {feature} f 
-                        WHERE f.organism_id=:organism_id
-                        AND EXISTS (
-                          SELECT feature_id FROM {analysisfeature} af 
-                            WHERE af.analysis_id=:analysis_id 
-                            AND f.feature_id=af.feature_id
-                        )', [
-        'organism_id' => $organism->organism_id,
-        'analysis_id' => $analysis->analysis_id,
-    ])->execute();
+
+    $prev = chado_set_active('chado');
+
+    $num = db_delete('chado.feature')
+        ->condition('organism_id', $organism->organism_id)
+        ->exists(db_select('chado.analysisfeature', 'af')
+            ->where('af.feature_id = chado.feature.feature_id')
+            ->condition('af.analysis_id', $analysis->analysis_id))
+        ->execute();
+
+    chado_set_active($prev);
+
+    return $num;
 }

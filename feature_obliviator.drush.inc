@@ -12,7 +12,7 @@ function feature_obliviator_drush_command()
         'examples' => [
             'drush obliviate' => 'Get a listing of organisms and analyses to obliviate features for.',
         ],
-        'callback' => 'drush_feature_obliviator_obliviate'
+        'callback' => 'drush_feature_obliviator_obliviate',
     ];
 
     return $commands;
@@ -61,12 +61,14 @@ function drush_feature_obliviator_obliviate()
 
     drush_print("Calculating... Please wait!");
     $count = feature_obliviator_get_count($organism, $analysis);
-    if(!drush_confirm("Delete $count features associated with \"$org_name\" and \"$analysis->name\"?")) {
+    if (! drush_confirm("Delete $count features associated with \"$org_name\" and \"$analysis->name\"?")) {
         return 0;
     }
 
+    drush_print("Obliviating $count features. Please wait...");
+
     $num_deleted = feature_obliviator_obliviate($organism, $analysis);
-    drush_print("$num_deleted features deleted.");
+    drush_print("$num_deleted features deleted. Please remember to unpublish the deleted features!");
 
     return 0;
 }
