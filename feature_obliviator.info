@@ -1,0 +1,3 @@
+name = Feature Obliviator
+description = Find and delete features from chado based on organism and analysis.
+core = 7.x

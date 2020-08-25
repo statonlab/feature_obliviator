@@ -1,0 +1,68 @@
+<?php
+/**
+ * @file
+ * A description of what your module does.
+ */
+
+/**
+ * @return array
+ * @throws \Exception
+ */
+function feature_obliviator_get_organisms()
+{
+    return chado_query('SELECT * FROM {organism} ORDER BY organism_id ASC')->fetchAll();
+}
+
+/**
+ * @param $organism
+ * @return array
+ * @throws \Exception
+ */
+function feature_obliviator_get_analyses($organism)
+{
+    return chado_query('SELECT a.name, a.analysis_id FROM {organism_analysis} oa  
+                            INNER JOIN {analysis} a on a.analysis_id = oa.analysis_id 
+                            WHERE organism_id = :id', [
+        ':id' => $organism->organism_id,
+    ])->fetchAll();
+}
+
+/**
+ * @param $organism
+ * @param $analysis
+ * @return int
+ * @throws \Exception
+ */
+function feature_obliviator_get_count($organism, $analysis)
+{
+    return (int) chado_query('SELECT COUNT(*) FROM {feature} f 
+                        WHERE f.organism_id=:organism_id
+                        AND EXISTS (
+                          SELECT feature_id FROM {analysisfeature} af 
+                            WHERE af.analysis_id=:analysis_id 
+                            AND f.feature_id=af.feature_id
+                        )', [
+        'organism_id' => $organism->organism_id,
+        'analysis_id' => $analysis->analysis_id,
+    ])->fetchField();
+}
+
+/**
+ * @param $organism
+ * @param $analysis
+ * @return int
+ * @throws \Exception
+ */
+function feature_obliviator_obliviate($organism, $analysis)
+{
+    return chado_query('DELETE FROM {feature} f 
+                        WHERE f.organism_id=:organism_id
+                        AND EXISTS (
+                          SELECT feature_id FROM {analysisfeature} af 
+                            WHERE af.analysis_id=:analysis_id 
+                            AND f.feature_id=af.feature_id
+                        )', [
+        'organism_id' => $organism->organism_id,
+        'analysis_id' => $analysis->analysis_id,
+    ])->execute();
+}
