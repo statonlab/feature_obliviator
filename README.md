@@ -5,6 +5,8 @@ users to delete data from the `chado.feature` table by
 specifying the organism and the analysis for which features
 should be deleted.
 
+![TFG hearthstone logo](/feature_obliviator.png)
+
 ### Installation
 
 Clone to `DRUPAL_ROOT/sites/all/modules` then enable the module using drush en feature_obliviator.
